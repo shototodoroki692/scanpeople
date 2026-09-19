@@ -41,7 +41,14 @@ sudo pacman -Syu
 echo "=== Installation de v4l2loopback ==="
 sudo pacman -S --needed --noconfirm v4l2loopback-dkms v4l2loopback-utils v4l-utils
 
-# 2.  Installation de GStreamer.
+# 2.  Installation de linux-headers.
+#
+# linux-headers : nécessaire pour que DKMS puisse compiler v4l2loopback
+# contre la version exacte de ton noyau actuel
+echo "=== Installation de linux-header ==="
+sudo pacman -S --needed --noconfirm linux-headers
+
+# 3.  Installation de GStreamer.
 #
 # NOTE
 # gstreamer        : cœur du framework de traitement de flux multimédia
@@ -61,4 +68,4 @@ sudo pacman -S --needed --noconfirm \
 echo ""
 echo "Installation terminée."
 echo "Aucun module n'est chargé et aucune configuration persistante n'a été créée."
-echo "Utilise 02-start-camera.sh à chaque session pour activer le device vidéo virtuel."
+echo "Utilise start.sh à chaque session pour activer le device vidéo virtuel."
