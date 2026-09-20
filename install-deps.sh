@@ -65,6 +65,46 @@ sudo pacman -S --needed --noconfirm \
   gst-plugins-bad \
   gst-libav
 
+# 4.  Installation d'OpenCV pour Python.
+#
+# python-opencv : bibliothèque de traitement d'image utilisée par detect.py
+#                 (lecture de la caméra, détection de visages, affichage).
+#                 Elle est dans les dépôts officiels Arch et tire numpy avec
+#                 elle : pas besoin de pip ni d'environnement virtuel.
+echo "=== Installation d'OpenCV pour Python ==="
+sudo pacman -S --needed --noconfirm python-opencv
+
+# 5.  Téléchargement du modèle de détection de visages (YuNet).
+#
+# Ce fichier ONNX (~230 Ko) contient les poids du réseau de neurones utilisé
+# par detect.py. Il n'est pas versionné dans le dépôt (voir .gitignore), donc
+# on le récupère ici, une seule fois.
+#
+# NOTE : l'URL passe par "media.githubusercontent.com" et non "raw." car le
+# dépôt opencv_zoo stocke ses modèles avec git-lfs ; l'URL "raw." renverrait
+# un simple fichier texte de quelques octets pointant vers le vrai fichier.
+readonly MODEL_DIR="$(dirname "$0")/models"
+readonly MODEL_FILE="${MODEL_DIR}/face_detection_yunet_2023mar.onnx"
+readonly MODEL_URL="https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx"
+
+echo "=== Téléchargement du modèle de détection de visages ==="
+if [[ -f "${MODEL_FILE}" ]]; then
+  echo "Le modèle est déjà présent : ${MODEL_FILE}"
+else
+  mkdir -p "${MODEL_DIR}"
+  curl -sSL -o "${MODEL_FILE}" "${MODEL_URL}"
+
+  # Garde-fou : si le téléchargement a renvoyé un pointeur git-lfs (quelques
+  # centaines d'octets) au lieu du modèle, autant le détecter tout de suite
+  # plutôt que de laisser OpenCV échouer avec un message incompréhensible.
+  if [[ "$(stat -c%s "${MODEL_FILE}")" -lt 100000 ]]; then
+    rm -f "${MODEL_FILE}"
+    echo "Le modèle téléchargé est invalide (fichier trop petit)." >&2
+    exit 1
+  fi
+  echo "Modèle téléchargé : ${MODEL_FILE}"
+fi
+
 echo ""
 echo "Installation terminée."
 echo "Aucun module n'est chargé et aucune configuration persistante n'a été créée."
